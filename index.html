@@ -6,6 +6,7 @@
   <title>TF20 Tactical Map - Mandol</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+
   <style>
     html, body {
       margin: 0;
@@ -14,6 +15,7 @@
       height: 100%;
       background: #111;
       font-family: Arial, sans-serif;
+      color: #fff;
     }
 
     #map {
@@ -27,21 +29,46 @@
       left: 50px;
       z-index: 1000;
       background: rgba(0, 0, 0, 0.8);
-      color: white;
+      color: #fff;
       padding: 8px 12px;
       border-radius: 4px;
       font-size: 14px;
       letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+
+    .feed-status {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      min-width: 180px;
+      text-align: right;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
     }
 
     .leaflet-popup-content {
-      min-width: 250px;
-      line-height: 1.35;
+      min-width: 280px;
+      line-height: 1.4;
+    }
+
+    .popup-row {
+      margin-bottom: 6px;
+    }
+
+    .popup-label {
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="map-title">TF20 TACTICAL MAP - MANDOL</div>
+  <div class="feed-status" id="feedStatus">Feed: Initializing...</div>
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
@@ -49,15 +76,177 @@
   <script src="https://mapsdata.plan-ops.fr/maps/rut_mandol.js"></script>
 
   <script>
-    window.addEventListener("load", function () {
+    const FEED_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+    const REFRESH_MS = 60000;
+
+    let map = null;
+    let markerLayer = null;
+    let currentJsonpScript = null;
+
+    function setFeedStatus(text) {
+      document.getElementById("feedStatus").textContent = text;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function buildPopupHtml(item) {
+      return `
+        <div class="popup-row"><span class="popup-label">DTG:</span> ${escapeHtml(item.dtg)}</div>
+        <div class="popup-row"><span class="popup-label">EVENT:</span> ${escapeHtml(item.eventType)}</div>
+        <div class="popup-row"><span class="popup-label">REPORTING UNIT / SOURCE:</span> ${escapeHtml(item.reportingUnit)}</div>
+        <div class="popup-row"><span class="popup-label">LOCATION:</span> ${escapeHtml(item.location)}</div>
+        <div class="popup-row"><span class="popup-label">INCIDENT SUMMARY:</span> ${escapeHtml(item.incidentSummary)}</div>
+        <div class="popup-row"><span class="popup-label">CASUALTIES / DAMAGE:</span> ${escapeHtml(item.casualtiesDamage)}</div>
+        <div class="popup-row"><span class="popup-label">ENEMY ACTIVITY / ASSESSMENT:</span> ${escapeHtml(item.enemyActivityAssessment)}</div>
+        <div class="popup-row"><span class="popup-label">STATUS / ACTION TAKEN:</span> ${escapeHtml(item.statusActionTaken)}</div>
+        <div class="popup-row"><span class="popup-label">SOURCE:</span> ${escapeHtml(item.source)}</div>
+        <div class="popup-row"><span class="popup-label">CONFIDENCE:</span> ${escapeHtml(item.confidence)}</div>
+        <div class="popup-row"><span class="popup-label">GRID:</span> ${escapeHtml(item.grid)}</div>
+      `;
+    }
+
+    function getMarkerColor(eventType) {
+      const value = String(eventType || "").toUpperCase();
+
+      if (value.includes("TIC")) return "#d9534f";
+      if (value.includes("IED")) return "#f0ad4e";
+      if (value.includes("IDF")) return "#ff7f50";
+      if (value.includes("RECON")) return "#5cb85c";
+      if (value.includes("MOVEMENT")) return "#5bc0de";
+      if (value.includes("AIR")) return "#8e44ad";
+      if (value.includes("CIV")) return "#795548";
+
+      return "#3388ff";
+    }
+
+    function renderMarkers(data) {
+      markerLayer.clearLayers();
+
+      if (!Array.isArray(data)) {
+        console.error("Feed did not return an array:", data);
+        setFeedStatus("Feed: Invalid data");
+        return;
+      }
+
+      let plotted = 0;
+
+      data.forEach(item => {
+        const northing = Number(item.northing);
+        const easting = Number(item.easting);
+
+        if (!Number.isFinite(northing) || !Number.isFinite(easting)) {
+          return;
+        }
+
+        const color = getMarkerColor(item.eventType);
+
+        const marker = L.circleMarker([northing, easting], {
+          radius: 8,
+          color: color,
+          weight: 2,
+          fillColor: color,
+          fillOpacity: 0.75
+        });
+
+        marker.bindPopup(buildPopupHtml(item));
+        marker.addTo(markerLayer);
+        plotted += 1;
+      });
+
+      setFeedStatus(`Feed: Online | Markers: ${plotted} | Updated: ${new Date().toLocaleTimeString()}`);
+    }
+
+    async function loadFeedJson() {
+      const response = await fetch(FEED_URL, {
+        method: "GET",
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return await response.json();
+    }
+
+    function loadFeedJsonp() {
+      return new Promise((resolve, reject) => {
+        const callbackName = "tf20FeedCallback_" + Date.now();
+
+        window[callbackName] = function (data) {
+          cleanup();
+          resolve(data);
+        };
+
+        function cleanup() {
+          if (currentJsonpScript && currentJsonpScript.parentNode) {
+            currentJsonpScript.parentNode.removeChild(currentJsonpScript);
+          }
+          currentJsonpScript = null;
+          delete window[callbackName];
+        }
+
+        currentJsonpScript = document.createElement("script");
+        currentJsonpScript.src =
+          FEED_URL +
+          (FEED_URL.includes("?") ? "&" : "?") +
+          "callback=" +
+          encodeURIComponent(callbackName) +
+          "&_ts=" +
+          Date.now();
+
+        currentJsonpScript.onerror = function () {
+          cleanup();
+          reject(new Error("JSONP request failed"));
+        };
+
+        document.body.appendChild(currentJsonpScript);
+
+        setTimeout(() => {
+          if (window[callbackName]) {
+            cleanup();
+            reject(new Error("JSONP request timed out"));
+          }
+        }, 15000);
+      });
+    }
+
+    async function loadFeed() {
+      setFeedStatus("Feed: Refreshing...");
+
+      try {
+        const data = await loadFeedJson();
+        renderMarkers(data);
+      } catch (jsonError) {
+        console.warn("Standard fetch failed, trying JSONP fallback:", jsonError);
+
+        try {
+          const data = await loadFeedJsonp();
+          renderMarkers(data);
+        } catch (jsonpError) {
+          console.error("Feed load failed:", jsonpError);
+          setFeedStatus("Feed: Error");
+        }
+      }
+    }
+
+    function initMap() {
       const mapInfos = window.Arma3Map?.Maps?.rut_mandol;
 
       if (!mapInfos) {
         console.error("rut_mandol config missing");
+        setFeedStatus("Feed: Map config error");
         return;
       }
 
-      const map = L.map("map", {
+      map = L.map("map", {
         minZoom: mapInfos.minZoom,
         maxZoom: mapInfos.maxZoom,
         crs: mapInfos.CRS
@@ -72,35 +261,13 @@
         tileSize: mapInfos.tileSize
       }).addTo(map);
 
-      const markerLayer = L.layerGroup().addTo(map);
+      markerLayer = L.layerGroup().addTo(map);
 
-      function addTestMarker(northing, easting, color, popupText) {
-        const marker = L.circleMarker([northing, easting], {
-          radius: 8,
-          color: color,
-          weight: 2,
-          fillColor: color,
-          fillOpacity: 0.75
-        });
+      loadFeed();
+      setInterval(loadFeed, REFRESH_MS);
+    }
 
-        marker.bindPopup(popupText);
-        marker.addTo(markerLayer);
-      }
-
-      addTestMarker(
-        16384,
-        16384,
-        "#ff3333",
-        "<b>TEST MARKER 1</b><br>Center of map"
-      );
-
-      addTestMarker(
-        17000,
-        15000,
-        "#33aaff",
-        "<b>TEST MARKER 2</b><br>Offset test point"
-      );
-    });
+    window.addEventListener("load", initMap);
   </script>
 </body>
 </html>
