@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TF20 Tactical Map - Mandol</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #111;
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+
+    .map-title {
+      position: absolute;
+      top: 10px;
+      left: 50px;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .leaflet-popup-content {
+      min-width: 250px;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+  <div class="map-title">TF20 TACTICAL MAP - MANDOL</div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  <script src="https://jetelain.github.io/Arma3Map/js/mapUtils.js"></script>
+  <script src="https://mapsdata.plan-ops.fr/maps/rut_mandol.js"></script>
+
+  <script>
+    window.addEventListener("load", function () {
+      const mapInfos = window.Arma3Map?.Maps?.rut_mandol;
+
+      if (!mapInfos) {
+        console.error("rut_mandol config missing");
+        return;
+      }
+
+      const map = L.map("map", {
+        minZoom: mapInfos.minZoom,
+        maxZoom: mapInfos.maxZoom,
+        crs: mapInfos.CRS
+      });
+
+      map.setView(mapInfos.center, mapInfos.defaultZoom);
+
+      const tileUrl = "https://mapsdata.plan-ops.fr" + mapInfos.tilePattern;
+
+      L.tileLayer(tileUrl, {
+        attribution: mapInfos.attribution,
+        tileSize: mapInfos.tileSize
+      }).addTo(map);
+
+      const markerLayer = L.layerGroup().addTo(map);
+
+      function addTestMarker(northing, easting, color, popupText) {
+        const marker = L.circleMarker([northing, easting], {
+          radius: 8,
+          color: color,
+          weight: 2,
+          fillColor: color,
+          fillOpacity: 0.75
+        });
+
+        marker.bindPopup(popupText);
+        marker.addTo(markerLayer);
+      }
+
+      // IMPORTANT:
+      // Leaflet here uses [northing, easting], not [easting, northing]
+
+      addTestMarker(
+        16384,
+        16384,
+        "#ff3333",
+        "<b>TEST MARKER 1</b><br>Center of map"
+      );
+
+      addTestMarker(
+        17000,
+        15000,
+        "#33aaff",
+        "<b>TEST MARKER 2</b><br>Offset test point"
+      );
+    });
+  </script>
+</body>
+</html>
