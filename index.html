@@ -3,73 +3,507 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TF20 Tactical Map - Mandol</title>
+  <title>CJSOTFA-S2-SIGACT-MANDOL AO</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
 
   <style>
+    :root {
+      --bg: #0b1118;
+      --bg-2: #0f1722;
+      --panel: rgba(12, 19, 28, 0.96);
+      --panel-2: rgba(16, 24, 36, 0.98);
+      --panel-border: rgba(133, 154, 181, 0.12);
+      --text: #e7edf5;
+      --muted: #8fa1b7;
+      --accent: #4f89c7;
+      --accent-soft: rgba(79, 137, 199, 0.14);
+      --danger: #ef5b5b;
+      --danger-soft: rgba(239, 91, 91, 0.14);
+      --warn: #f0ad4e;
+      --warn-soft: rgba(240, 173, 78, 0.14);
+      --friendly: #4da3ff;
+      --friendly-soft: rgba(77, 163, 255, 0.14);
+      --neutral: #98a6b5;
+      --neutral-soft: rgba(152, 166, 181, 0.12);
+      --success: #34c46a;
+      --shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      background: #111;
+      background: var(--bg);
+      color: var(--text);
       font-family: Arial, sans-serif;
-      color: #fff;
+      overflow: hidden;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: var(--bg);
     }
 
     #map {
-      width: 100%;
-      height: 100vh;
+      position: absolute;
+      top: 64px;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1;
+      background: #0a0f15;
     }
 
-    .map-title {
+    .topbar {
       position: absolute;
-      top: 10px;
-      left: 50px;
-      z-index: 1000;
-      background: rgba(0, 0, 0, 0.8);
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-size: 14px;
-      letter-spacing: 0.5px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 16px;
+      background: linear-gradient(180deg, #0d141d 0%, #0a1018 100%);
+      border-bottom: 1px solid var(--panel-border);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
     }
 
-    .feed-status {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 1000;
-      background: rgba(0, 0, 0, 0.8);
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 4px;
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: bold;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
       font-size: 12px;
-      min-width: 180px;
-      text-align: right;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      font-weight: bold;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      background: var(--neutral-soft);
+      color: var(--text);
     }
 
-    .leaflet-popup-content {
-      min-width: 280px;
-      line-height: 1.4;
+    .chip-total {
+      background: var(--neutral-soft);
+      color: var(--text);
+      border-color: rgba(152, 166, 181, 0.12);
     }
 
-    .popup-row {
+    .chip-red {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: rgba(239, 91, 91, 0.18);
+    }
+
+    .chip-orange {
+      background: var(--warn-soft);
+      color: var(--warn);
+      border-color: rgba(240, 173, 78, 0.2);
+    }
+
+    .chip-blue {
+      background: var(--friendly-soft);
+      color: var(--friendly);
+      border-color: rgba(77, 163, 255, 0.2);
+    }
+
+    .chip-live {
+      background: rgba(52, 196, 106, 0.12);
+      color: var(--success);
+      border-color: rgba(52, 196, 106, 0.16);
+    }
+
+    .side-panel {
+      position: absolute;
+      top: 64px;
+      bottom: 0;
+      width: 360px;
+      z-index: 1100;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(4px);
+    }
+
+    .side-panel.left {
+      left: 0;
+      border-left: 0;
+      border-top: 0;
+      border-bottom: 0;
+      border-radius: 0;
+    }
+
+    .side-panel.right {
+      right: 0;
+      border-right: 0;
+      border-top: 0;
+      border-bottom: 0;
+      border-radius: 0;
+    }
+
+    .panel-header {
+      padding: 14px 16px 12px 16px;
+      border-bottom: 1px solid var(--panel-border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      flex: 0 0 auto;
+    }
+
+    .panel-kicker {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: bold;
+      letter-spacing: 0.2px;
+      color: var(--text);
+    }
+
+    .panel-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 14px 16px 16px 16px;
+      background: transparent;
+    }
+
+    .placeholder {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      padding: 4px 2px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .detail-card {
+      border: 1px solid rgba(133, 154, 181, 0.10);
+      border-radius: 10px;
+      background: var(--panel-2);
+      padding: 12px 12px 10px 12px;
+    }
+
+    .detail-label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .detail-value {
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .detail-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .event-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 0.4px;
+      border: 1px solid transparent;
+    }
+
+    .event-badge.red {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: rgba(239, 91, 91, 0.18);
+    }
+
+    .event-badge.orange {
+      background: var(--warn-soft);
+      color: var(--warn);
+      border-color: rgba(240, 173, 78, 0.2);
+    }
+
+    .event-badge.blue {
+      background: var(--friendly-soft);
+      color: var(--friendly);
+      border-color: rgba(77, 163, 255, 0.2);
+    }
+
+    .event-badge.gray {
+      background: var(--neutral-soft);
+      color: var(--neutral);
+      border-color: rgba(152, 166, 181, 0.18);
+    }
+
+    .report-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .report-item {
+      margin-bottom: 10px;
+      border: 1px solid rgba(133, 154, 181, 0.10);
+      border-radius: 10px;
+      background: var(--panel-2);
+      padding: 12px;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .report-item:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(79, 137, 199, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .report-item.active {
+      background: rgba(79, 137, 199, 0.12);
+      border-color: rgba(79, 137, 199, 0.45);
+      box-shadow: 0 4px 14px rgba(79, 137, 199, 0.10);
+    }
+
+    .report-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .report-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .report-dtg {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .report-unit {
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .report-location {
+      font-size: 12px;
+      color: var(--muted);
       margin-bottom: 6px;
     }
 
-    .popup-label {
+    .report-summary {
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 14px 0;
+    }
+
+    .filter-chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(133, 154, 181, 0.12);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font-size: 11px;
       font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .filter-chip.active {
+      background: var(--accent-soft);
+      border-color: rgba(79, 137, 199, 0.26);
+      color: #9cc7f3;
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: rgba(12, 19, 28, 0.96);
+      color: var(--text);
+      border: 1px solid rgba(133, 154, 181, 0.12);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    .leaflet-popup-tip {
+      background: rgba(12, 19, 28, 0.96);
+    }
+
+    .leaflet-popup-content {
+      min-width: 180px;
+      line-height: 1.35;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .mini-popup-row {
+      margin-bottom: 4px;
+    }
+
+    .mini-popup-label {
+      color: var(--muted);
+      font-weight: bold;
+    }
+
+    .leaflet-control-zoom a {
+      background-color: rgba(12, 19, 28, 0.96);
+      color: var(--text);
+      border-bottom: 1px solid rgba(133, 154, 181, 0.12);
+    }
+
+    .leaflet-control-zoom a:hover {
+      background-color: rgba(255,255,255,0.06);
+    }
+
+    @media (max-width: 1280px) {
+      .side-panel {
+        width: 320px;
+      }
+    }
+
+    @media (max-width: 1120px) {
+      .side-panel {
+        width: 290px;
+      }
+
+      .topbar {
+        padding: 0 10px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="map-title">TF20 TACTICAL MAP - MANDOL</div>
-  <div class="feed-status" id="feedStatus">Feed: Initializing...</div>
-  <div id="map"></div>
+  <div id="app">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="brand">
+          <div>
+            <div class="brand-title">CJSOTFA-S2-SIGACT-MANDOL AO</div>
+            <div class="brand-subtitle">Operational Activity Feed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="chip chip-total" id="chipTotal">0 Events</div>
+        <div class="chip chip-red" id="chipRed">0 Red</div>
+        <div class="chip chip-orange" id="chipOrange">0 Orange</div>
+        <div class="chip chip-blue" id="chipBlue">0 Blue</div>
+        <div class="chip chip-live" id="chipLive">Feed: Initializing...</div>
+      </div>
+    </div>
+
+    <div class="side-panel left">
+      <div class="panel-header">
+        <div class="panel-kicker">Selected Event</div>
+        <div class="panel-title">Event Details</div>
+      </div>
+      <div class="panel-body" id="detailsPanel">
+        <div class="placeholder">
+          Select a marker on the map or a report from the right-side list.
+        </div>
+      </div>
+    </div>
+
+    <div class="side-panel right">
+      <div class="panel-header">
+        <div class="panel-kicker">Map Feed</div>
+        <div class="panel-title">All Visible Reports</div>
+      </div>
+      <div class="panel-body">
+        <div class="filter-row" id="filterRow">
+          <div class="filter-chip active" data-filter="ALL">All</div>
+          <div class="filter-chip" data-filter="RED">Red</div>
+          <div class="filter-chip" data-filter="ORANGE">Orange</div>
+          <div class="filter-chip" data-filter="BLUE">Blue</div>
+        </div>
+        <ul class="report-list" id="reportList"></ul>
+      </div>
+    </div>
+
+    <div id="map"></div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://jetelain.github.io/Arma3Map/js/mapUtils.js"></script>
@@ -82,10 +516,10 @@
     let map = null;
     let markerLayer = null;
     let currentJsonpScript = null;
-
-    function setFeedStatus(text) {
-      document.getElementById("feedStatus").textContent = text;
-    }
+    let currentData = [];
+    let currentFilter = "ALL";
+    let markerById = {};
+    let selectedReportId = null;
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -96,46 +530,248 @@
         .replace(/'/g, "&#39;");
     }
 
-    function buildPopupHtml(item) {
-      return `
-        <div class="popup-row"><span class="popup-label">DTG:</span> ${escapeHtml(item.dtg)}</div>
-        <div class="popup-row"><span class="popup-label">EVENT:</span> ${escapeHtml(item.eventType)}</div>
-        <div class="popup-row"><span class="popup-label">REPORTING UNIT / SOURCE:</span> ${escapeHtml(item.reportingUnit)}</div>
-        <div class="popup-row"><span class="popup-label">LOCATION:</span> ${escapeHtml(item.location)}</div>
-        <div class="popup-row"><span class="popup-label">INCIDENT SUMMARY:</span> ${escapeHtml(item.incidentSummary)}</div>
-        <div class="popup-row"><span class="popup-label">CASUALTIES / DAMAGE:</span> ${escapeHtml(item.casualtiesDamage)}</div>
-        <div class="popup-row"><span class="popup-label">ENEMY ACTIVITY / ASSESSMENT:</span> ${escapeHtml(item.enemyActivityAssessment)}</div>
-        <div class="popup-row"><span class="popup-label">STATUS / ACTION TAKEN:</span> ${escapeHtml(item.statusActionTaken)}</div>
-        <div class="popup-row"><span class="popup-label">SOURCE:</span> ${escapeHtml(item.source)}</div>
-        <div class="popup-row"><span class="popup-label">CONFIDENCE:</span> ${escapeHtml(item.confidence)}</div>
-        <div class="popup-row"><span class="popup-label">GRID:</span> ${escapeHtml(item.grid)}</div>
-      `;
+    function getReportId(item) {
+      if (item.reportId && String(item.reportId).trim() !== "") {
+        return String(item.reportId).trim();
+      }
+
+      return [
+        item.dtg || "",
+        item.eventType || "",
+        item.reportingUnit || "",
+        item.location || "",
+        item.easting || "",
+        item.northing || ""
+      ].join("|");
+    }
+
+    function getEventCode(eventType) {
+      const raw = String(eventType || "").trim().toUpperCase();
+      if (!raw) return "UNK";
+
+      const firstToken = raw.split(/[ \\/|-]+/)[0] || raw;
+      return firstToken.substring(0, 3);
+    }
+
+    function getEventColorGroup(eventType) {
+      const code = getEventCode(eventType);
+
+      if (["TIC", "IDF", "ATK", "ENY"].includes(code)) return "RED";
+      if (code === "FRD") return "ORANGE";
+      if (code === "BLU") return "BLUE";
+
+      return "GRAY";
     }
 
     function getMarkerColor(eventType) {
-      const value = String(eventType || "").toUpperCase();
+      const group = getEventColorGroup(eventType);
 
-      if (value.includes("TIC")) return "#d9534f";
-      if (value.includes("IED")) return "#f0ad4e";
-      if (value.includes("IDF")) return "#ff7f50";
-      if (value.includes("RECON")) return "#5cb85c";
-      if (value.includes("MOVEMENT")) return "#5bc0de";
-      if (value.includes("AIR")) return "#8e44ad";
-      if (value.includes("CIV")) return "#795548";
+      if (group === "RED") return "#ef5b5b";
+      if (group === "ORANGE") return "#f0ad4e";
+      if (group === "BLUE") return "#4da3ff";
 
-      return "#3388ff";
+      return "#98a6b5";
     }
 
-    function renderMarkers(data) {
-      markerLayer.clearLayers();
+    function getBadgeClass(eventType) {
+      const group = getEventColorGroup(eventType);
 
-      if (!Array.isArray(data)) {
-        console.error("Feed did not return an array:", data);
-        setFeedStatus("Feed: Invalid data");
+      if (group === "RED") return "red";
+      if (group === "ORANGE") return "orange";
+      if (group === "BLUE") return "blue";
+
+      return "gray";
+    }
+
+    function setLiveStatus(text) {
+      document.getElementById("chipLive").textContent = text;
+    }
+
+    function updateTopStats(data) {
+      let red = 0;
+      let orange = 0;
+      let blue = 0;
+
+      data.forEach(item => {
+        const group = getEventColorGroup(item.eventType);
+        if (group === "RED") red += 1;
+        else if (group === "ORANGE") orange += 1;
+        else if (group === "BLUE") blue += 1;
+      });
+
+      document.getElementById("chipTotal").textContent = `${data.length} Events`;
+      document.getElementById("chipRed").textContent = `${red} Red`;
+      document.getElementById("chipOrange").textContent = `${orange} Orange`;
+      document.getElementById("chipBlue").textContent = `${blue} Blue`;
+    }
+
+    function buildPopupHtml(item) {
+      return `
+        <div class="mini-popup-row"><span class="mini-popup-label">DTG:</span> ${escapeHtml(item.dtg)}</div>
+        <div class="mini-popup-row"><span class="mini-popup-label">EVENT:</span> ${escapeHtml(item.eventType)}</div>
+      `;
+    }
+
+    function renderDetails(item) {
+      const panel = document.getElementById("detailsPanel");
+
+      if (!item) {
+        panel.innerHTML = `
+          <div class="placeholder">
+            Select a marker on the map or a report from the right-side list.
+          </div>
+        `;
         return;
       }
 
-      let plotted = 0;
+      const badgeClass = getBadgeClass(item.eventType);
+      const code = getEventCode(item.eventType);
+
+      panel.innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-card">
+            <div class="detail-topline">
+              <div class="event-badge ${badgeClass}">${escapeHtml(code)}</div>
+              <div class="detail-value" style="font-size:12px;color:var(--muted);">${escapeHtml(item.reportId || "")}</div>
+            </div>
+
+            <div class="detail-label">Event Type</div>
+            <div class="detail-value">${escapeHtml(item.eventType)}</div>
+          </div>
+
+          <div class="detail-card">
+            <span class="detail-label">DTG</span>
+            <div class="detail-value">${escapeHtml(item.dtg)}</div>
+          </div>
+
+          <div class="detail-card">
+            <span class="detail-label">Reporting Unit / Source</span>
+            <div class="detail-value">${escapeHtml(item.reportingUnit)}</div>
+          </div>
+
+          <div class="detail-card">
+            <span class="detail-label">Location</span>
+            <div class="detail-value">${escapeHtml(item.location)}</div>
+          </div>
+
+          <div class="detail-card">
+            <span class="detail-label">Incident Summary</span>
+            <div class="detail-value">${escapeHtml(item.incidentSummary)}</div>
+          </div>
+
+          <div class="detail-card">
+            <span class="detail-label">Casualties / Damage</span>
+            <div class="detail-value">${escapeHtml(item.casualtiesDamage)}</div>
+          </div>
+
+          <div class="detail-card">
+            <span class="detail-label">Enemy Activity / Assessment</span>
+            <div class="detail-value">${escapeHtml(item.enemyActivityAssessment)}</div>
+          </div>
+
+          <div class="detail-card">
+            <span class="detail-label">Status / Action Taken</span>
+            <div class="detail-value">${escapeHtml(item.statusActionTaken)}</div>
+          </div>
+
+          <div class="detail-card">
+            <span class="detail-label">Source</span>
+            <div class="detail-value">${escapeHtml(item.source)}</div>
+          </div>
+
+          <div class="detail-card">
+            <span class="detail-label">Confidence</span>
+            <div class="detail-value">${escapeHtml(item.confidence)}</div>
+          </div>
+
+          <div class="detail-card">
+            <span class="detail-label">Grid</span>
+            <div class="detail-value">${escapeHtml(item.grid)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectReport(item, openPopup = true, panToMarker = false) {
+      if (!item) return;
+
+      selectedReportId = getReportId(item);
+      renderDetails(item);
+      highlightActiveListItem();
+
+      const marker = markerById[selectedReportId];
+      if (marker) {
+        if (panToMarker) {
+          map.panTo(marker.getLatLng());
+        }
+        if (openPopup) {
+          marker.openPopup();
+        }
+      }
+    }
+
+    function highlightActiveListItem() {
+      document.querySelectorAll(".report-item").forEach(el => {
+        if (el.dataset.reportId === selectedReportId) {
+          el.classList.add("active");
+        } else {
+          el.classList.remove("active");
+        }
+      });
+    }
+
+    function getFilteredData() {
+      if (currentFilter === "ALL") return currentData;
+
+      return currentData.filter(item => getEventColorGroup(item.eventType) === currentFilter);
+    }
+
+    function renderReportList() {
+      const list = document.getElementById("reportList");
+      const data = getFilteredData();
+
+      if (!data.length) {
+        list.innerHTML = `<li class="placeholder">No reports match the current filter.</li>`;
+        return;
+      }
+
+      list.innerHTML = data.map(item => {
+        const reportId = getReportId(item);
+        const code = getEventCode(item.eventType);
+        const badgeClass = getBadgeClass(item.eventType);
+
+        return `
+          <li class="report-item ${selectedReportId === reportId ? "active" : ""}" data-report-id="${escapeHtml(reportId)}">
+            <div class="report-topline">
+              <div class="report-meta-left">
+                <div class="event-badge ${badgeClass}">${escapeHtml(code)}</div>
+              </div>
+              <div class="report-dtg">${escapeHtml(item.dtg)}</div>
+            </div>
+
+            <div class="report-unit">${escapeHtml(item.reportingUnit)}</div>
+            <div class="report-location">${escapeHtml(item.location)}</div>
+            <div class="report-summary">${escapeHtml(item.incidentSummary)}</div>
+          </li>
+        `;
+      }).join("");
+
+      list.querySelectorAll(".report-item").forEach(el => {
+        el.addEventListener("click", () => {
+          const reportId = el.dataset.reportId;
+          const item = currentData.find(r => getReportId(r) === reportId);
+          if (item) {
+            selectReport(item, true, true);
+          }
+        });
+      });
+    }
+
+    function renderMarkers() {
+      markerLayer.clearLayers();
+      markerById = {};
+
+      const data = getFilteredData();
 
       data.forEach(item => {
         const northing = Number(item.northing);
@@ -145,6 +781,7 @@
           return;
         }
 
+        const reportId = getReportId(item);
         const color = getMarkerColor(item.eventType);
 
         const marker = L.circleMarker([northing, easting], {
@@ -152,15 +789,40 @@
           color: color,
           weight: 2,
           fillColor: color,
-          fillOpacity: 0.75
+          fillOpacity: 0.84
         });
 
         marker.bindPopup(buildPopupHtml(item));
-        marker.addTo(markerLayer);
-        plotted += 1;
-      });
 
-      setFeedStatus(`Feed: Online | Markers: ${plotted} | Updated: ${new Date().toLocaleTimeString()}`);
+        marker.on("click", () => {
+          selectReport(item, false, false);
+        });
+
+        marker.addTo(markerLayer);
+        markerById[reportId] = marker;
+      });
+    }
+
+    function renderAll(data) {
+      currentData = Array.isArray(data) ? data : [];
+      updateTopStats(currentData);
+      renderMarkers();
+      renderReportList();
+
+      if (selectedReportId) {
+        const selectedItem = currentData.find(item => getReportId(item) === selectedReportId);
+        if (selectedItem) {
+          renderDetails(selectedItem);
+          highlightActiveListItem();
+        } else {
+          selectedReportId = null;
+          renderDetails(null);
+        }
+      }
+
+      if (!selectedReportId && currentData.length) {
+        selectReport(currentData[0], false, false);
+      }
     }
 
     async function loadFeedJson() {
@@ -219,22 +881,51 @@
     }
 
     async function loadFeed() {
-      setFeedStatus("Feed: Refreshing...");
+      setLiveStatus("Feed: Refreshing...");
 
       try {
         const data = await loadFeedJson();
-        renderMarkers(data);
+        renderAll(data);
+        setLiveStatus(`Feed: Live | ${new Date().toLocaleTimeString()}`);
       } catch (jsonError) {
         console.warn("Standard fetch failed, trying JSONP fallback:", jsonError);
 
         try {
           const data = await loadFeedJsonp();
-          renderMarkers(data);
+          renderAll(data);
+          setLiveStatus(`Feed: Live | ${new Date().toLocaleTimeString()}`);
         } catch (jsonpError) {
           console.error("Feed load failed:", jsonpError);
-          setFeedStatus("Feed: Error");
+          setLiveStatus("Feed: Error");
         }
       }
+    }
+
+    function initFilters() {
+      document.querySelectorAll(".filter-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+          chip.classList.add("active");
+          currentFilter = chip.dataset.filter;
+          renderMarkers();
+          renderReportList();
+
+          if (selectedReportId) {
+            const visible = getFilteredData().some(item => getReportId(item) === selectedReportId);
+            if (!visible) {
+              selectedReportId = null;
+              renderDetails(null);
+            }
+          }
+
+          if (!selectedReportId) {
+            const data = getFilteredData();
+            if (data.length) {
+              selectReport(data[0], false, false);
+            }
+          }
+        });
+      });
     }
 
     function initMap() {
@@ -242,7 +933,7 @@
 
       if (!mapInfos) {
         console.error("rut_mandol config missing");
-        setFeedStatus("Feed: Map config error");
+        setLiveStatus("Feed: Map config error");
         return;
       }
 
@@ -263,6 +954,7 @@
 
       markerLayer = L.layerGroup().addTo(map);
 
+      initFilters();
       loadFeed();
       setInterval(loadFeed, REFRESH_MS);
     }
