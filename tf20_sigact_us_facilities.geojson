@@ -1,0 +1,101 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "CANDALDARI Airfield",
+        "grid": "2422-1183",
+        "type": "AIRFIELD",
+        "kind": "us_facility"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2422,
+          1183
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "FOB Gordon",
+        "grid": "2152-2300",
+        "type": "FOB",
+        "kind": "us_facility"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2152,
+          2300
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "COP Busch",
+        "grid": "1585-2335",
+        "type": "COP",
+        "kind": "us_facility"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1585,
+          2335
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "COP Martin",
+        "grid": "1167-2971",
+        "type": "COP",
+        "kind": "us_facility"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1167,
+          2971
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "COP Briley",
+        "grid": "2473-2369",
+        "type": "COP",
+        "kind": "us_facility"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2473,
+          2369
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "COP Fillmore",
+        "grid": "2042-2723",
+        "type": "COP",
+        "kind": "us_facility"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2042,
+          2723
+        ]
+      }
+    }
+  ]
+}

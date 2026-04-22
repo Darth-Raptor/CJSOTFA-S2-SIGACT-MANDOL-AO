@@ -1,0 +1,99 @@
+[
+  {
+    "name": "ANESH",
+    "northing": 22188.7,
+    "easting": 12181.9,
+    "sector": "WV"
+  },
+  {
+    "name": "ASHNAM",
+    "northing": 9331.57,
+    "easting": 26756.8,
+    "sector": "SEV"
+  },
+  {
+    "name": "ASTANA",
+    "northing": 17622.1,
+    "easting": 22381.1,
+    "sector": "CV"
+  },
+  {
+    "name": "ATITI",
+    "northing": 19952.4,
+    "easting": 22225.5,
+    "sector": "CV"
+  },
+  {
+    "name": "CANDALDARI",
+    "northing": 10309.1,
+    "easting": 24776.6,
+    "sector": "CD"
+  },
+  {
+    "name": "GADYALA",
+    "northing": 20369.2,
+    "easting": 14681.2,
+    "sector": "WV"
+  },
+  {
+    "name": "KAJDARA",
+    "northing": 23542.4,
+    "easting": 14289.8,
+    "sector": "WV"
+  },
+  {
+    "name": "KALAT",
+    "northing": 10470.6,
+    "easting": 23965.8,
+    "sector": "CD",
+    "fullName": "KALAT URBANIZATION PROJECT"
+  },
+  {
+    "name": "KAZDEH",
+    "northing": 13034.9,
+    "easting": 24006.4,
+    "sector": "CD"
+  },
+  {
+    "name": "MANDOL",
+    "northing": 28696.6,
+    "easting": 11497.0,
+    "sector": "NV"
+  },
+  {
+    "name": "NILAW",
+    "northing": 26985.9,
+    "easting": 20576.2,
+    "sector": "NV"
+  },
+  {
+    "name": "PASHSHAD",
+    "northing": 23573.6,
+    "easting": 19635.2,
+    "sector": "CV"
+  },
+  {
+    "name": "PASHSHAD LOWER",
+    "northing": 23583.6,
+    "easting": 20668.2,
+    "sector": "CV"
+  },
+  {
+    "name": "PASKI",
+    "northing": 20610.1,
+    "easting": 8074.75,
+    "sector": "WV"
+  },
+  {
+    "name": "QL SHAH",
+    "northing": 13978.1,
+    "easting": 24340.7,
+    "sector": "CD"
+  },
+  {
+    "name": "LAQASH",
+    "northing": 29543.8,
+    "easting": 10754.5,
+    "sector": "NV"
+  }
+]
