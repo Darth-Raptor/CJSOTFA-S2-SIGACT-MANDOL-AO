@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CJSOTFA-S2-SIGACT-MANDOL AO</title>
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
       --bg: #0b1118;
@@ -34,488 +33,160 @@
       --left-panel-collapsed-width: 44px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, sans-serif;
-      overflow: hidden;
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      background: var(--bg); color: var(--text);
+      font-family: Arial, sans-serif; overflow: hidden;
     }
 
-    #app {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      background: var(--bg);
-    }
-
+    #app { width: 100%; height: 100%; position: relative; background: var(--bg); }
     #map {
-      position: absolute;
-      top: var(--topbar-height);
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 1;
-      background: #0a0f15;
+      position: absolute; top: var(--topbar-height); bottom: 0; left: 0; right: 0;
+      z-index: 1; background: #0a0f15;
     }
 
     .topbar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: var(--topbar-height);
-      z-index: 1200;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 0 16px;
-      background: #0d141d;
-      border-bottom: 1px solid var(--panel-border);
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+      position: absolute; top: 0; left: 0; right: 0; height: var(--topbar-height);
+      z-index: 1200; display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding: 0 16px; background: #0d141d;
+      border-bottom: 1px solid var(--panel-border); box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
     }
-
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      min-width: 0;
-    }
-
-    .brand-title {
-      font-size: 16px;
-      font-weight: bold;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-      color: var(--text);
-    }
-
-    .brand-subtitle {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-      white-space: nowrap;
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
+    .topbar-left, .topbar-right { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+    .brand-title { font-size: 16px; font-weight: bold; letter-spacing: 0.3px; white-space: nowrap; color: var(--text); }
+    .brand-subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; }
 
     .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: bold;
-      border: 1px solid transparent;
-      white-space: nowrap;
-      background: var(--neutral-soft);
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: bold;
+      border: 1px solid transparent; white-space: nowrap; background: var(--neutral-soft);
       color: var(--text);
     }
-
-    .chip-total {
-      background: var(--neutral-soft);
-      color: var(--text);
-      border-color: rgba(152, 166, 181, 0.12);
-    }
-
-    .chip-red {
-      background: var(--danger-soft);
-      color: var(--danger);
-      border-color: rgba(239, 91, 91, 0.18);
-    }
-
-    .chip-orange {
-      background: var(--warn-soft);
-      color: var(--warn);
-      border-color: rgba(240, 173, 78, 0.2);
-    }
-
-    .chip-blue {
-      background: var(--friendly-soft);
-      color: var(--friendly);
-      border-color: rgba(77, 163, 255, 0.2);
-    }
-
-    .chip-live {
-      background: rgba(52, 196, 106, 0.12);
-      color: var(--success);
-      border-color: rgba(52, 196, 106, 0.16);
-    }
+    .chip-total { background: var(--neutral-soft); border-color: rgba(152, 166, 181, 0.12); }
+    .chip-red { background: var(--danger-soft); color: var(--danger); border-color: rgba(239, 91, 91, 0.18); }
+    .chip-orange { background: var(--warn-soft); color: var(--warn); border-color: rgba(240, 173, 78, 0.20); }
+    .chip-blue { background: var(--friendly-soft); color: var(--friendly); border-color: rgba(77, 163, 255, 0.20); }
+    .chip-live { background: rgba(52, 196, 106, 0.12); color: var(--success); border-color: rgba(52, 196, 106, 0.16); }
 
     .side-panel {
-      position: absolute;
-      top: var(--topbar-height);
-      bottom: 0;
-      z-index: 1100;
-      background: var(--panel);
-      border: 1px solid var(--panel-border);
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      position: absolute; top: var(--topbar-height); bottom: 0; z-index: 1100; background: var(--panel);
+      border: 1px solid var(--panel-border); box-shadow: var(--shadow);
+      display: flex; flex-direction: column; overflow: hidden;
     }
-
     .side-panel.left {
-      left: 0;
-      width: var(--left-panel-width);
-      border-left: 0;
-      border-top: 0;
-      border-bottom: 0;
-      border-radius: 0;
-      transition: width 0.2s ease;
+      left: 0; width: var(--left-panel-width);
+      border-left: 0; border-top: 0; border-bottom: 0; border-radius: 0; transition: width 0.2s ease;
     }
-
-    .side-panel.left.collapsed {
-      width: var(--left-panel-collapsed-width);
-    }
-
+    .side-panel.left.collapsed { width: var(--left-panel-collapsed-width); }
     .side-panel.right {
-      right: 0;
-      width: var(--right-panel-width);
-      border-right: 0;
-      border-top: 0;
-      border-bottom: 0;
-      border-radius: 0;
+      right: 0; width: var(--right-panel-width);
+      border-right: 0; border-top: 0; border-bottom: 0; border-radius: 0;
     }
 
     .panel-header {
-      padding: 14px 16px 12px 16px;
-      border-bottom: 1px solid var(--panel-border);
-      background: #101824;
-      flex: 0 0 auto;
-      position: relative;
+      padding: 14px 16px 12px 16px; border-bottom: 1px solid var(--panel-border);
+      background: #101824; flex: 0 0 auto; position: relative;
     }
-
-    .panel-header-flex {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
+    .panel-header-flex { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
     .panel-kicker {
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-      font-weight: bold;
+      font-size: 11px; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase;
+      margin-bottom: 6px; font-weight: bold;
     }
-
-    .panel-title {
-      font-size: 15px;
-      font-weight: bold;
-      letter-spacing: 0.2px;
-      color: var(--text);
-    }
-
-    .panel-body {
-      flex: 1 1 auto;
-      overflow-y: auto;
-      padding: 14px 16px 16px 16px;
-      background: transparent;
-    }
-
-    .side-panel.left.collapsed .panel-body,
-    .side-panel.left.collapsed .panel-title-wrap {
-      display: none;
-    }
-
+    .panel-title { font-size: 15px; font-weight: bold; letter-spacing: 0.2px; color: var(--text); }
+    .panel-body { flex: 1 1 auto; overflow-y: auto; padding: 14px 16px 16px 16px; background: transparent; }
+    .side-panel.left.collapsed .panel-body, .side-panel.left.collapsed .panel-title-wrap { display: none; }
     .side-panel.left.collapsed .panel-header {
-      padding: 10px 6px;
-      height: 100%;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      border-bottom: 0;
+      padding: 10px 6px; height: 100%; display: flex; align-items: flex-start; justify-content: center; border-bottom: 0;
     }
-
-    .side-panel.left.collapsed .panel-header-flex {
-      width: 100%;
-      justify-content: center;
-    }
+    .side-panel.left.collapsed .panel-header-flex { width: 100%; justify-content: center; }
 
     .collapse-btn {
-      appearance: none;
-      border: 1px solid rgba(133, 154, 181, 0.16);
-      background: #152130;
-      color: var(--text);
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      line-height: 1;
-      flex: 0 0 auto;
+      appearance: none; border: 1px solid rgba(133, 154, 181, 0.16); background: #152130; color: var(--text);
+      width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px; line-height: 1; flex: 0 0 auto;
     }
-
-    .collapse-btn:hover {
-      background: #1a2a3d;
-    }
-
+    .collapse-btn:hover { background: #1a2a3d; }
     .collapse-rail-label {
-      display: none;
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      color: var(--muted);
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-top: 12px;
-      text-align: center;
+      display: none; writing-mode: vertical-rl; transform: rotate(180deg); color: var(--muted);
+      font-size: 10px; letter-spacing: 1px; text-transform: uppercase; margin-top: 12px; text-align: center;
     }
+    .side-panel.left.collapsed .collapse-rail-label { display: block; }
 
-    .side-panel.left.collapsed .collapse-rail-label {
-      display: block;
-    }
-
-    .placeholder {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.6;
-      padding: 4px 2px;
-    }
-
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-
+    .detail-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
     .detail-card {
-      border: 1px solid rgba(133, 154, 181, 0.10);
-      border-radius: 10px;
-      background: var(--panel-2);
+      border: 1px solid rgba(133, 154, 181, 0.10); border-radius: 10px; background: var(--panel-2);
       padding: 12px 12px 10px 12px;
     }
-
     .detail-label {
-      display: block;
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      margin-bottom: 4px;
-      font-weight: bold;
+      display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px;
+      margin-bottom: 4px; font-weight: bold;
     }
-
-    .detail-value {
-      font-size: 13px;
-      line-height: 1.45;
-      color: var(--text);
-      word-break: break-word;
-    }
-
-    .detail-topline {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
+    .detail-value { font-size: 13px; line-height: 1.45; color: var(--text); word-break: break-word; }
+    .detail-topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
 
     .event-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: bold;
-      letter-spacing: 0.4px;
-      border: 1px solid transparent;
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: bold; letter-spacing: 0.4px; border: 1px solid transparent;
     }
+    .event-badge.red { background: var(--danger-soft); color: var(--danger); border-color: rgba(239, 91, 91, 0.18); }
+    .event-badge.orange { background: var(--warn-soft); color: var(--warn); border-color: rgba(240, 173, 78, 0.20); }
+    .event-badge.blue { background: var(--friendly-soft); color: var(--friendly); border-color: rgba(77, 163, 255, 0.20); }
+    .event-badge.gray { background: var(--neutral-soft); color: var(--neutral); border-color: rgba(152, 166, 181, 0.18); }
 
-    .event-badge.red {
-      background: var(--danger-soft);
-      color: var(--danger);
-      border-color: rgba(239, 91, 91, 0.18);
-    }
-
-    .event-badge.orange {
-      background: var(--warn-soft);
-      color: var(--warn);
-      border-color: rgba(240, 173, 78, 0.2);
-    }
-
-    .event-badge.blue {
-      background: var(--friendly-soft);
-      color: var(--friendly);
-      border-color: rgba(77, 163, 255, 0.2);
-    }
-
-    .event-badge.gray {
-      background: var(--neutral-soft);
-      color: var(--neutral);
-      border-color: rgba(152, 166, 181, 0.18);
-    }
-
-    .report-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
+    .report-list { list-style: none; padding: 0; margin: 0; }
     .report-item {
-      margin-bottom: 10px;
-      border: 1px solid rgba(133, 154, 181, 0.10);
-      border-radius: 10px;
-      background: var(--panel-2);
-      padding: 12px;
-      cursor: pointer;
+      margin-bottom: 10px; border: 1px solid rgba(133, 154, 181, 0.10); border-radius: 10px;
+      background: var(--panel-2); padding: 12px; cursor: pointer;
       transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
     }
-
-    .report-item:hover {
-      background: rgba(255,255,255,0.04);
-      border-color: rgba(79, 137, 199, 0.28);
-      transform: translateY(-1px);
-    }
-
-    .report-item.active {
-      background: rgba(79, 137, 199, 0.12);
-      border-color: rgba(79, 137, 199, 0.45);
-      box-shadow: 0 4px 14px rgba(79, 137, 199, 0.10);
-    }
-
-    .report-topline {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .report-meta-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .report-dtg {
-      font-size: 11px;
-      color: var(--muted);
-      white-space: nowrap;
-      margin-top: 2px;
-    }
-
-    .report-unit {
-      font-size: 12px;
-      font-weight: bold;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-
-    .report-location {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
+    .report-item:hover { background: rgba(255,255,255,0.04); border-color: rgba(79, 137, 199, 0.28); transform: translateY(-1px); }
+    .report-item.active { background: rgba(79, 137, 199, 0.12); border-color: rgba(79, 137, 199, 0.45); box-shadow: 0 4px 14px rgba(79, 137, 199, 0.10); }
+    .report-topline { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .report-meta-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .report-dtg { font-size: 11px; color: var(--muted); white-space: nowrap; margin-top: 2px; }
+    .report-unit { font-size: 12px; font-weight: bold; color: var(--text); margin-bottom: 4px; }
+    .report-location { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
     .report-summary {
-      font-size: 12px;
-      line-height: 1.45;
-      color: var(--text);
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      font-size: 12px; line-height: 1.45; color: var(--text); display: -webkit-box;
+      -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
     }
-
-    .filter-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 0 0 14px 0;
+    .filter-row, .overlay-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px 0; }
+    .filter-chip, .overlay-chip {
+      padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(133, 154, 181, 0.12);
+      background: rgba(255,255,255,0.03); color: var(--text); font-size: 11px; font-weight: bold; cursor: pointer; user-select: none;
     }
+    .filter-chip.active, .overlay-chip.active { background: var(--accent-soft); border-color: rgba(79, 137, 199, 0.26); color: #9cc7f3; }
 
-    .filter-chip {
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(133, 154, 181, 0.12);
-      background: rgba(255,255,255,0.03);
-      color: var(--text);
-      font-size: 11px;
+    .section-label {
+      margin: 14px 0 8px 0; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
       font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .filter-chip.active {
-      background: var(--accent-soft);
-      border-color: rgba(79, 137, 199, 0.26);
-      color: #9cc7f3;
     }
 
     .leaflet-popup-content-wrapper {
-      background: var(--panel);
-      color: var(--text);
-      border: 1px solid rgba(133, 154, 181, 0.12);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      background: var(--panel); color: var(--text); border: 1px solid rgba(133, 154, 181, 0.12); box-shadow: 0 8px 24px rgba(0,0,0,0.35);
     }
-
-    .leaflet-popup-tip {
-      background: var(--panel);
-    }
-
-    .leaflet-popup-content {
-      min-width: 180px;
-      line-height: 1.35;
-      font-size: 12px;
-      color: var(--text);
-    }
-
-    .mini-popup-row {
-      margin-bottom: 4px;
-    }
-
-    .mini-popup-label {
-      color: var(--muted);
-      font-weight: bold;
-    }
-
+    .leaflet-popup-tip { background: var(--panel); }
+    .leaflet-popup-content { min-width: 180px; line-height: 1.35; font-size: 12px; color: var(--text); }
+    .mini-popup-row { margin-bottom: 4px; }
+    .mini-popup-label { color: var(--muted); font-weight: bold; }
     .leaflet-control-zoom a {
-      background-color: var(--panel);
-      color: var(--text);
-      border-bottom: 1px solid rgba(133, 154, 181, 0.12);
+      background-color: var(--panel); color: var(--text); border-bottom: 1px solid rgba(133, 154, 181, 0.12);
     }
-
-    .leaflet-control-zoom a:hover {
-      background-color: rgba(255,255,255,0.06);
+    .leaflet-control-zoom a:hover { background-color: rgba(255,255,255,0.06); }
+    .leaflet-control-attribution { background: rgba(12,19,28,.88) !important; color: var(--muted); }
+    .leaflet-tooltip.route-label, .leaflet-tooltip.place-label, .leaflet-tooltip.facility-label, .leaflet-tooltip.sector-label {
+      background: rgba(12,19,28,.96); border: 1px solid rgba(133,154,181,.12); color: var(--text);
+      box-shadow: none; border-radius: 4px; padding: 2px 6px; font-size: 11px;
     }
+    .leaflet-tooltip.place-label { color: #d3e4ff; }
+    .leaflet-tooltip.facility-label { color: #ffd483; }
+    .leaflet-tooltip.sector-label { color: #cfd8e3; font-size: 12px; font-weight: bold; }
 
     @media (max-width: 1280px) {
-      :root {
-        --left-panel-width: 420px;
-        --right-panel-width: 220px;
-      }
+      :root { --left-panel-width: 420px; --right-panel-width: 220px; }
     }
-
     @media (max-width: 1120px) {
-      :root {
-        --left-panel-width: 360px;
-        --right-panel-width: 210px;
-      }
-
-      .topbar {
-        padding: 0 10px;
-      }
+      :root { --left-panel-width: 360px; --right-panel-width: 210px; }
+      .topbar { padding: 0 10px; }
     }
   </style>
 </head>
@@ -558,12 +229,23 @@
         <div class="panel-title">All Visible Reports</div>
       </div>
       <div class="panel-body">
+        <div class="section-label">Feed Filters</div>
         <div class="filter-row" id="filterRow">
           <div class="filter-chip active" data-filter="ALL">All</div>
           <div class="filter-chip" data-filter="RED">Red</div>
           <div class="filter-chip" data-filter="ORANGE">Orange</div>
           <div class="filter-chip" data-filter="BLUE">Blue</div>
         </div>
+
+        <div class="section-label">Overlays</div>
+        <div class="overlay-row" id="overlayRow">
+          <div class="overlay-chip" data-layer-key="sectorSketch">Sector Sketch</div>
+          <div class="overlay-chip active" data-layer-key="routes">Routes</div>
+          <div class="overlay-chip" data-layer-key="spurs">Spurs</div>
+          <div class="overlay-chip active" data-layer-key="namedPlaces">Named Places</div>
+          <div class="overlay-chip active" data-layer-key="usFacilities">U.S. Facilities</div>
+        </div>
+
         <ul class="report-list" id="reportList"></ul>
       </div>
     </div>
@@ -571,7 +253,7 @@
     <div id="map"></div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://jetelain.github.io/Arma3Map/js/mapUtils.js"></script>
   <script src="https://mapsdata.plan-ops.fr/maps/rut_mandol.js"></script>
 
@@ -579,6 +261,13 @@
     const FEED_URL = "https://script.google.com/macros/s/AKfycbyrJrIG7MESAUb_kF91HLZQZOfpNu-Nc84NLCo7HXPV0KCmZhqjyK7J75CpccUQ7OO1pg/exec";
     const REFRESH_MS = 60000;
     const FOCUS_ZOOM = 4;
+    const GEOJSON_FILES = {
+      sectorSketch: "./tf20_layers-52421.geojson",
+      routes: "./tf20_layers-53434.geojson",
+      spurs: "./tf20_layers-53440.geojson",
+      namedPlaces: "./tf20_sigact_named_places.geojson",
+      usFacilities: "./tf20_sigact_us_facilities.geojson"
+    };
 
     let map = null;
     let markerLayer = null;
@@ -588,6 +277,22 @@
     let markerById = {};
     let selectedReportId = null;
     let leftPanelCollapsed = false;
+
+    const overlayState = {
+      sectorSketch: false,
+      routes: true,
+      spurs: false,
+      namedPlaces: true,
+      usFacilities: true
+    };
+
+    const overlayLayers = {
+      sectorSketch: L.layerGroup(),
+      routes: L.layerGroup(),
+      spurs: L.layerGroup(),
+      namedPlaces: L.layerGroup(),
+      usFacilities: L.layerGroup()
+    };
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -616,38 +321,31 @@
     function getEventCode(eventType) {
       const raw = String(eventType || "").trim().toUpperCase();
       if (!raw) return "UNK";
-
       const firstToken = raw.split(/[ \\/|-]+/)[0] || raw;
       return firstToken.substring(0, 3);
     }
 
     function getEventColorGroup(eventType) {
       const code = getEventCode(eventType);
-
       if (["TIC", "IDF", "ATK", "ENY"].includes(code)) return "RED";
       if (code === "FRD") return "ORANGE";
       if (code === "BLU") return "BLUE";
-
       return "GRAY";
     }
 
     function getMarkerColor(eventType) {
       const group = getEventColorGroup(eventType);
-
       if (group === "RED") return "#ef5b5b";
       if (group === "ORANGE") return "#f0ad4e";
       if (group === "BLUE") return "#4da3ff";
-
       return "#98a6b5";
     }
 
     function getBadgeClass(eventType) {
       const group = getEventColorGroup(eventType);
-
       if (group === "RED") return "red";
       if (group === "ORANGE") return "orange";
       if (group === "BLUE") return "blue";
-
       return "gray";
     }
 
@@ -656,10 +354,7 @@
     }
 
     function updateTopStats(data) {
-      let red = 0;
-      let orange = 0;
-      let blue = 0;
-
+      let red = 0, orange = 0, blue = 0;
       data.forEach(item => {
         const group = getEventColorGroup(item.eventType);
         if (group === "RED") red += 1;
@@ -682,7 +377,6 @@
 
     function renderDetails(item) {
       const panel = document.getElementById("detailsPanel");
-
       if (!item) {
         panel.innerHTML = "";
         return;
@@ -698,99 +392,45 @@
               <div class="event-badge ${badgeClass}">${escapeHtml(code)}</div>
               <div class="detail-value" style="font-size:12px;color:var(--muted);">${escapeHtml(item.reportId || "")}</div>
             </div>
-
             <div class="detail-label">Event Type</div>
             <div class="detail-value">${escapeHtml(item.eventType)}</div>
           </div>
-
-          <div class="detail-card">
-            <span class="detail-label">DTG</span>
-            <div class="detail-value">${escapeHtml(item.dtg)}</div>
-          </div>
-
-          <div class="detail-card">
-            <span class="detail-label">Reporting Unit / Source</span>
-            <div class="detail-value">${escapeHtml(item.reportingUnit)}</div>
-          </div>
-
-          <div class="detail-card">
-            <span class="detail-label">Location</span>
-            <div class="detail-value">${escapeHtml(item.location)}</div>
-          </div>
-
-          <div class="detail-card">
-            <span class="detail-label">Incident Summary</span>
-            <div class="detail-value">${escapeHtml(item.incidentSummary)}</div>
-          </div>
-
-          <div class="detail-card">
-            <span class="detail-label">Casualties / Damage</span>
-            <div class="detail-value">${escapeHtml(item.casualtiesDamage)}</div>
-          </div>
-
-          <div class="detail-card">
-            <span class="detail-label">Enemy Activity / Assessment</span>
-            <div class="detail-value">${escapeHtml(item.enemyActivityAssessment)}</div>
-          </div>
-
-          <div class="detail-card">
-            <span class="detail-label">Status / Action Taken</span>
-            <div class="detail-value">${escapeHtml(item.statusActionTaken)}</div>
-          </div>
-
-          <div class="detail-card">
-            <span class="detail-label">Source</span>
-            <div class="detail-value">${escapeHtml(item.source)}</div>
-          </div>
-
-          <div class="detail-card">
-            <span class="detail-label">Confidence</span>
-            <div class="detail-value">${escapeHtml(item.confidence)}</div>
-          </div>
-
-          <div class="detail-card">
-            <span class="detail-label">Grid</span>
-            <div class="detail-value">${escapeHtml(item.grid)}</div>
-          </div>
+          <div class="detail-card"><span class="detail-label">DTG</span><div class="detail-value">${escapeHtml(item.dtg)}</div></div>
+          <div class="detail-card"><span class="detail-label">Reporting Unit / Source</span><div class="detail-value">${escapeHtml(item.reportingUnit)}</div></div>
+          <div class="detail-card"><span class="detail-label">Location</span><div class="detail-value">${escapeHtml(item.location)}</div></div>
+          <div class="detail-card"><span class="detail-label">Incident Summary</span><div class="detail-value">${escapeHtml(item.incidentSummary)}</div></div>
+          <div class="detail-card"><span class="detail-label">Casualties / Damage</span><div class="detail-value">${escapeHtml(item.casualtiesDamage)}</div></div>
+          <div class="detail-card"><span class="detail-label">Enemy Activity / Assessment</span><div class="detail-value">${escapeHtml(item.enemyActivityAssessment)}</div></div>
+          <div class="detail-card"><span class="detail-label">Status / Action Taken</span><div class="detail-value">${escapeHtml(item.statusActionTaken)}</div></div>
+          <div class="detail-card"><span class="detail-label">Source</span><div class="detail-value">${escapeHtml(item.source)}</div></div>
+          <div class="detail-card"><span class="detail-label">Confidence</span><div class="detail-value">${escapeHtml(item.confidence)}</div></div>
+          <div class="detail-card"><span class="detail-label">Grid</span><div class="detail-value">${escapeHtml(item.grid)}</div></div>
         </div>
       `;
     }
 
     function focusOnMarker(marker) {
       if (!marker || !map) return;
-      const currentZoom = map.getZoom();
-      const targetZoom = Math.max(currentZoom, FOCUS_ZOOM);
-      map.flyTo(marker.getLatLng(), targetZoom, {
-        animate: true,
-        duration: 0.6
-      });
+      const targetZoom = Math.max(map.getZoom(), FOCUS_ZOOM);
+      map.flyTo(marker.getLatLng(), targetZoom, { animate: true, duration: 0.6 });
     }
 
     function selectReport(item, openPopup = true, focusMap = false) {
       if (!item) return;
-
       selectedReportId = getReportId(item);
       renderDetails(item);
       highlightActiveListItem();
 
       const marker = markerById[selectedReportId];
       if (marker) {
-        if (focusMap) {
-          focusOnMarker(marker);
-        }
-        if (openPopup) {
-          marker.openPopup();
-        }
+        if (focusMap) focusOnMarker(marker);
+        if (openPopup) marker.openPopup();
       }
     }
 
     function highlightActiveListItem() {
       document.querySelectorAll(".report-item").forEach(el => {
-        if (el.dataset.reportId === selectedReportId) {
-          el.classList.add("active");
-        } else {
-          el.classList.remove("active");
-        }
+        el.classList.toggle("active", el.dataset.reportId === selectedReportId);
       });
     }
 
@@ -804,7 +444,7 @@
       const data = getFilteredData();
 
       if (!data.length) {
-        list.innerHTML = `<li class="placeholder">No reports match the current filter.</li>`;
+        list.innerHTML = `<li class="detail-value" style="color: var(--muted);">No reports match the current filter.</li>`;
         return;
       }
 
@@ -812,16 +452,12 @@
         const reportId = getReportId(item);
         const code = getEventCode(item.eventType);
         const badgeClass = getBadgeClass(item.eventType);
-
         return `
           <li class="report-item ${selectedReportId === reportId ? "active" : ""}" data-report-id="${escapeHtml(reportId)}">
             <div class="report-topline">
-              <div class="report-meta-left">
-                <div class="event-badge ${badgeClass}">${escapeHtml(code)}</div>
-              </div>
+              <div class="report-meta-left"><div class="event-badge ${badgeClass}">${escapeHtml(code)}</div></div>
               <div class="report-dtg">${escapeHtml(item.dtg)}</div>
             </div>
-
             <div class="report-unit">${escapeHtml(item.reportingUnit)}</div>
             <div class="report-location">${escapeHtml(item.location)}</div>
             <div class="report-summary">${escapeHtml(item.incidentSummary)}</div>
@@ -831,11 +467,8 @@
 
       list.querySelectorAll(".report-item").forEach(el => {
         el.addEventListener("click", () => {
-          const reportId = el.dataset.reportId;
-          const item = currentData.find(r => getReportId(r) === reportId);
-          if (item) {
-            selectReport(item, true, true);
-          }
+          const item = currentData.find(r => getReportId(r) === el.dataset.reportId);
+          if (item) selectReport(item, true, true);
         });
       });
     }
@@ -843,34 +476,19 @@
     function renderMarkers() {
       markerLayer.clearLayers();
       markerById = {};
-
-      const data = getFilteredData();
-
-      data.forEach(item => {
+      getFilteredData().forEach(item => {
         const northing = Number(item.northing);
         const easting = Number(item.easting);
-
-        if (!Number.isFinite(northing) || !Number.isFinite(easting)) {
-          return;
-        }
+        if (!Number.isFinite(northing) || !Number.isFinite(easting)) return;
 
         const reportId = getReportId(item);
         const color = getMarkerColor(item.eventType);
-
         const marker = L.circleMarker([northing, easting], {
-          radius: 8,
-          color: color,
-          weight: 2,
-          fillColor: color,
-          fillOpacity: 0.84
+          radius: 8, color, weight: 2, fillColor: color, fillOpacity: 0.84
         });
 
         marker.bindPopup(buildPopupHtml(item));
-
-        marker.on("click", () => {
-          selectReport(item, false, false);
-        });
-
+        marker.on("click", () => selectReport(item, false, false));
         marker.addTo(markerLayer);
         markerById[reportId] = marker;
       });
@@ -884,81 +502,49 @@
 
       if (selectedReportId) {
         const selectedItem = currentData.find(item => getReportId(item) === selectedReportId);
-        if (selectedItem) {
-          renderDetails(selectedItem);
-          highlightActiveListItem();
-        } else {
+        if (selectedItem) renderDetails(selectedItem);
+        else {
           selectedReportId = null;
           renderDetails(null);
         }
+        highlightActiveListItem();
       }
     }
 
     async function loadFeedJson() {
-      const response = await fetch(FEED_URL, {
-        method: "GET",
-        cache: "no-store"
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
+      const response = await fetch(FEED_URL, { method: "GET", cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     }
 
     function loadFeedJsonp() {
       return new Promise((resolve, reject) => {
         const callbackName = "tf20FeedCallback_" + Date.now();
-
-        window[callbackName] = function (data) {
-          cleanup();
-          resolve(data);
-        };
+        window[callbackName] = function (data) { cleanup(); resolve(data); };
 
         function cleanup() {
-          if (currentJsonpScript && currentJsonpScript.parentNode) {
-            currentJsonpScript.parentNode.removeChild(currentJsonpScript);
-          }
+          if (currentJsonpScript && currentJsonpScript.parentNode) currentJsonpScript.parentNode.removeChild(currentJsonpScript);
           currentJsonpScript = null;
           delete window[callbackName];
         }
 
         currentJsonpScript = document.createElement("script");
-        currentJsonpScript.src =
-          FEED_URL +
-          (FEED_URL.includes("?") ? "&" : "?") +
-          "callback=" +
-          encodeURIComponent(callbackName) +
-          "&_ts=" +
-          Date.now();
-
-        currentJsonpScript.onerror = function () {
-          cleanup();
-          reject(new Error("JSONP request failed"));
-        };
-
+        currentJsonpScript.src = FEED_URL + (FEED_URL.includes("?") ? "&" : "?") + "callback=" + encodeURIComponent(callbackName) + "&_ts=" + Date.now();
+        currentJsonpScript.onerror = function () { cleanup(); reject(new Error("JSONP request failed")); };
         document.body.appendChild(currentJsonpScript);
 
-        setTimeout(() => {
-          if (window[callbackName]) {
-            cleanup();
-            reject(new Error("JSONP request timed out"));
-          }
-        }, 15000);
+        setTimeout(() => { if (window[callbackName]) { cleanup(); reject(new Error("JSONP request timed out")); } }, 15000);
       });
     }
 
     async function loadFeed() {
       setLiveStatus("Feed: Refreshing...");
-
       try {
         const data = await loadFeedJson();
         renderAll(data);
         setLiveStatus(`Feed: Live | ${new Date().toLocaleTimeString()}`);
       } catch (jsonError) {
         console.warn("Standard fetch failed, trying JSONP fallback:", jsonError);
-
         try {
           const data = await loadFeedJsonp();
           renderAll(data);
@@ -968,6 +554,148 @@
           setLiveStatus("Feed: Error");
         }
       }
+    }
+
+    function escapeRegExp(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function geoColorToHex(colorValue, fallback) {
+      const lookup = {
+        colorblue: "#4da3ff",
+        colororange: "#f0ad4e",
+        colorkhaki: "#c8b27a",
+        colorblack: "#cfd8e3",
+        colorred: "#ef5b5b",
+        colorgreen: "#34c46a",
+        colorwhite: "#ffffff"
+      };
+      return lookup[(colorValue || "").toLowerCase()] || fallback;
+    }
+
+    function makeTextIcon(label, className) {
+      return L.divIcon({
+        className: className,
+        html: `<span>${escapeHtml(label)}</span>`,
+        iconSize: null
+      });
+    }
+
+    function styleTacMapFeature(feature, fallbackColor, fallbackWeight, fallbackOpacity) {
+      const cfg = feature.properties?.["tacmap:config"] || {};
+      return {
+        color: geoColorToHex(cfg.color, fallbackColor),
+        weight: Number(cfg.weight) || fallbackWeight,
+        opacity: fallbackOpacity,
+        fillOpacity: 0
+      };
+    }
+
+    function bindTacMapTooltip(layer, feature, cssClass) {
+      const label = feature.properties?.["tacmap:config"]?.label;
+      if (label) {
+        layer.bindTooltip(label, { permanent: true, direction: "center", className: cssClass, interactive: false });
+      }
+    }
+
+    async function loadGeoJsonFile(url) {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Failed to load ${url}: HTTP ${response.status}`);
+      return await response.json();
+    }
+
+    async function loadOverlayLayers() {
+      const [sectorSketchData, routesData, spursData, namedPlacesData, facilitiesData] = await Promise.all([
+        loadGeoJsonFile(GEOJSON_FILES.sectorSketch),
+        loadGeoJsonFile(GEOJSON_FILES.routes),
+        loadGeoJsonFile(GEOJSON_FILES.spurs),
+        loadGeoJsonFile(GEOJSON_FILES.namedPlaces),
+        loadGeoJsonFile(GEOJSON_FILES.usFacilities)
+      ]);
+
+      overlayLayers.sectorSketch.clearLayers();
+      overlayLayers.routes.clearLayers();
+      overlayLayers.spurs.clearLayers();
+      overlayLayers.namedPlaces.clearLayers();
+      overlayLayers.usFacilities.clearLayers();
+
+      L.geoJSON(sectorSketchData, {
+        style: feature => styleTacMapFeature(feature, "#4da3ff", 2, 0.65),
+        pointToLayer: (feature, latlng) => {
+          const label = feature.properties?.["tacmap:config"]?.label || "";
+          return L.marker(latlng, { icon: makeTextIcon(label, "sector-label") });
+        },
+        onEachFeature: (feature, layer) => {
+          if (feature.geometry?.type === "LineString") bindTacMapTooltip(layer, feature, "sector-label");
+        }
+      }).addTo(overlayLayers.sectorSketch);
+
+      L.geoJSON(routesData, {
+        style: feature => styleTacMapFeature(feature, "#f0ad4e", 3, 0.85),
+        pointToLayer: (feature, latlng) => {
+          const label = feature.properties?.["tacmap:config"]?.label || "";
+          return L.marker(latlng, { icon: makeTextIcon(label, "route-label") });
+        },
+        onEachFeature: (feature, layer) => {
+          if (feature.geometry?.type === "LineString") bindTacMapTooltip(layer, feature, "route-label");
+        }
+      }).addTo(overlayLayers.routes);
+
+      L.geoJSON(spursData, {
+        style: feature => styleTacMapFeature(feature, "#c8b27a", 2, 0.85)
+      }).addTo(overlayLayers.spurs);
+
+      L.geoJSON(namedPlacesData, {
+        pointToLayer: (feature, latlng) => {
+          const marker = L.circleMarker(latlng, {
+            radius: 4, color: "#d3e4ff", weight: 1, fillColor: "#d3e4ff", fillOpacity: 0.9
+          });
+          marker.bindTooltip(feature.properties?.name || "", {
+            permanent: true, direction: "top", offset: [0, -2], className: "place-label", interactive: false
+          });
+          return marker;
+        }
+      }).addTo(overlayLayers.namedPlaces);
+
+      L.geoJSON(facilitiesData, {
+        pointToLayer: (feature, latlng) => {
+          const marker = L.circleMarker(latlng, {
+            radius: 5, color: "#ffd483", weight: 1, fillColor: "#ffd483", fillOpacity: 0.95
+          });
+          const props = feature.properties || {};
+          marker.bindTooltip(props.name || "", {
+            permanent: true, direction: "right", offset: [6, 0], className: "facility-label", interactive: false
+          });
+          marker.bindPopup(`
+            <div class="mini-popup-row"><span class="mini-popup-label">FACILITY:</span> ${escapeHtml(props.name || "")}</div>
+            <div class="mini-popup-row"><span class="mini-popup-label">TYPE:</span> ${escapeHtml(props.type || "")}</div>
+            <div class="mini-popup-row"><span class="mini-popup-label">GRID:</span> ${escapeHtml(props.grid || "")}</div>
+          `);
+          return marker;
+        }
+      }).addTo(overlayLayers.usFacilities);
+
+      syncOverlayVisibility();
+    }
+
+    function syncOverlayVisibility() {
+      Object.entries(overlayLayers).forEach(([key, layer]) => {
+        const shouldShow = overlayState[key];
+        const hasLayer = map.hasLayer(layer);
+        if (shouldShow && !hasLayer) layer.addTo(map);
+        if (!shouldShow && hasLayer) map.removeLayer(layer);
+      });
+    }
+
+    function initOverlayToggle() {
+      document.querySelectorAll(".overlay-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          const key = chip.dataset.layerKey;
+          overlayState[key] = !overlayState[key];
+          chip.classList.toggle("active", overlayState[key]);
+          syncOverlayVisibility();
+        });
+      });
     }
 
     function initFilters() {
@@ -993,54 +721,46 @@
     function initLeftPanelToggle() {
       const leftPanel = document.getElementById("leftPanel");
       const btn = document.getElementById("collapseLeftBtn");
-
       btn.addEventListener("click", () => {
         leftPanelCollapsed = !leftPanelCollapsed;
         leftPanel.classList.toggle("collapsed", leftPanelCollapsed);
         btn.textContent = leftPanelCollapsed ? "▶" : "◀";
         btn.title = leftPanelCollapsed ? "Open panel" : "Fold panel";
-
-        setTimeout(() => {
-          if (map) {
-            map.invalidateSize();
-          }
-        }, 220);
+        setTimeout(() => { if (map) map.invalidateSize(); }, 220);
       });
     }
 
-    function initMap() {
+    async function initMap() {
       const mapInfos = window.Arma3Map?.Maps?.rut_mandol;
-
       if (!mapInfos) {
         console.error("rut_mandol config missing");
         setLiveStatus("Feed: Map config error");
         return;
       }
 
-      map = L.map("map", {
-        minZoom: mapInfos.minZoom,
-        maxZoom: mapInfos.maxZoom,
-        crs: mapInfos.CRS
-      });
-
+      map = L.map("map", { minZoom: mapInfos.minZoom, maxZoom: mapInfos.maxZoom, crs: mapInfos.CRS });
       map.setView(mapInfos.center, mapInfos.defaultZoom);
 
       const tileUrl = "https://mapsdata.plan-ops.fr" + mapInfos.tilePattern;
-
-      L.tileLayer(tileUrl, {
-        attribution: mapInfos.attribution,
-        tileSize: mapInfos.tileSize
-      }).addTo(map);
+      L.tileLayer(tileUrl, { attribution: mapInfos.attribution, tileSize: mapInfos.tileSize }).addTo(map);
 
       markerLayer = L.layerGroup().addTo(map);
 
       initFilters();
+      initOverlayToggle();
       initLeftPanelToggle();
-      loadFeed();
+
+      await loadOverlayLayers();
+      await loadFeed();
       setInterval(loadFeed, REFRESH_MS);
     }
 
-    window.addEventListener("load", initMap);
+    window.addEventListener("load", () => {
+      initMap().catch(err => {
+        console.error("Map initialization failed:", err);
+        setLiveStatus("Feed: Init error");
+      });
+    });
   </script>
 </body>
 </html>
